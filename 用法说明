@@ -1,0 +1,161 @@
+
+  1,banner.js是一个轮播图的插件，基于jQuery。
+    <div class="banner">
+		<ul>
+			<li><img src="img/banner1.png" width="339" height="250"  alt="" /></li>
+			<li><img src="img/banner2.png" width="339" height="250"  alt="" /></li>
+			<li><img src="img/banner3.jpg" width="339" height="250"  alt="" /></li>
+		</ul>
+		<div class="pagination">
+			<span class="active">1</span>
+			<span>2</span>
+			<span>3</span>
+	    </div>
+	</div>
+	为基本布局。后面调用时只需要换 var slideBox = $(".banner");//(或者自定义的元素名)
+  
+  2,formatdate.js是一个时间戳格式转换的插件，调用方法formatDate("要转换的时间")
+    支持字符串时间戳:125800000,
+	年月日格式：yy-mm-dd,
+	年月日时间格式：yy-mm-dd hh-mm-ss
+	
+  3,timer.js是一个现实当前时间年月日时分秒的插件，调用时将元素的
+    innerHTML(javascript)或者html(jquery)设置成变量 time 就好
+	  document.getElementById("xxx").innerHTML=time; 或
+	  $("xxx").html(time)
+	
+  4,validate是基于jQuery的一个表单验证插件，可直接在input内加规则
+      required为必填项， data-msg="XXX不能为空"
+	  密码验证：（此处假设 <input id=“password” />）
+		  data-rule-minlength="6" data-msg-minlength="密码长度不足6位"  
+		  data-rule-equalto="#password" data-msg-equalto="确认密码与密码不一致"
+	  电话验证：
+		  data-rule-pattern="^(0((10)|(2\d)|(\d{3}))-?[^01]\d{6,7})|(1\d{10})$"电话格式正则
+		  data-msg-pattern="电话格式错误"
+	  邮箱验证：
+		data-rule-email="true" data-msg-email="邮箱格式错误"
+	  调用：例表单 <form id="testForm"><input type="submit"/></form>
+	  $("#testForm").validate({
+	    submitHandler:function(form){
+		    //操作
+			form.submit();
+		}
+	  })
+	  
+    5,jquery.twbsPagination是基于jQuery的一个分页插件，其中分页样式引用bootstrap分页样式，不需要引
+	  bootstrap的全部CSS和JS，把.pagination一段copy即可。此处可贴代码：
+			  .pagination {
+					display: inline-block;
+					padding-left: 0;
+					margin-bottom: 20px;
+					border-radius: 4px;
+				}
+
+				.pagination>li {
+					display: inline;
+				}
+
+				.pagination>li>a,
+				.pagination>li>span {
+					position: relative;
+					float: left;
+					padding: 6px 12px;
+					margin-left: -1px;
+					line-height: 1.42857143;
+					color: #000;
+					text-decoration: none;
+					background-color: #fff;
+					border: 1px solid #ddd;
+				}
+
+				.pagination>li:first-child>a,
+				.pagination>li:first-child>span {
+					margin-left: 0;
+					border-top-left-radius: 4px;
+					border-bottom-left-radius: 4px;
+				}
+
+				.pagination>li:last-child>a,
+				.pagination>li:last-child>span {
+					border-top-right-radius: 4px;
+					border-bottom-right-radius: 4px;
+				}
+
+				.pagination>li>a:hover,
+				.pagination>li>span:hover,
+				.pagination>li>a:focus,
+				.pagination>li>span:focus {
+					z-index: 2;
+					color: #f44336;
+					background-color: #eee;
+					border-color: #ddd;
+				}
+
+				.pagination>.active>a,
+				.pagination>.active>span,
+				.pagination>.active>a:hover,
+				.pagination>.active>span:hover,
+				.pagination>.active>a:focus,
+				.pagination>.active>span:focus {
+					z-index: 3;
+					color: #fff;
+					cursor: default;
+					background-color: #f44336;
+					border-color: #f44336;
+				}
+
+				.pagination>.disabled>span,
+				.pagination>.disabled>span:hover,
+				.pagination>.disabled>span:focus,
+				.pagination>.disabled>a,
+				.pagination>.disabled>a:hover,
+				.pagination>.disabled>a:focus {
+					color: #777;
+					cursor: not-allowed;
+					background-color: #fff;
+					border-color: #ddd;
+				}	
+	  用法可参见"http://esimakin.github.io/twbs-pagination/";
+	  我的栗子：
+	      //可封装成一个函数
+	       function loadPage(pageNumber) {
+					var pid=GetQueryString("id");//这是获取URL后面的参数"id"
+					$.ajax({
+						type: "GET",
+						url: ajaxPath+"/ehs/api/news?pageNumber="+pageNumber+"&pageSize=15&category="+pid,
+						// pageNumber为参数，表示当前时第几页，后面调用默认为第一页
+						// pageSize 表示每页显示的数量，我这里为15条
+						// pid是我这边的一个必须参数，根据这个id去显示数据
+						data: {},
+						dataType: 'JSON',
+						success: function(data) {
+							var list = "";
+							var model =data.data.list;
+							$.each(model,function(index,ele){
+								list +='<li><a  href="newsinfo.html?id='+ele.news_id+'">'+ele.title+'</a><span class="news-time">'+formatDate(ele.create_time)+'</span></li>';
+							    $("#fireName").empty().html(ele.category_name);
+							})
+							$("#artContent").html(list);
+							
+							
+							$('#pagination').twbsPagination({//调用这个twbsPagination插件，
+								  totalPages: data.data.pager.pageCount,//pageCount接口返回的总条数
+								  first: "首页",
+								  prev:"上页",
+								  next: "下页",
+								  last:"尾页",
+								  visiblePages: 7,
+								  initiateStartPageClick: false,
+								  onPageClick: function (event, page) {
+	            					loadPage(page);
+								  }
+							});
+				
+						},
+						error: function(data) {
+							return;
+							
+						}
+		            });
+				}
+				loadPage(1);//调用，默认第一页
